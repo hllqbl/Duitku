@@ -1,22 +1,5 @@
 package repository
 
-/*
-CreateTransaksi()
-GetTransaksiByID()
-GetTransaksiByPenggunaID()
-GetAllTransaksi()
-UpdateTransaksi()
-DeleteTransaksi()
-*/
-
-/*
-SELECT → QueryRow → Scan
-INSERT → Exec
-UPDATE → Exec
-DELETE → Exec
-SELECT banyak → Query → Next → Scan
-*/
-
 import (
 	"Duitku/models"
 	"database/sql"
@@ -33,10 +16,16 @@ func NewTransaksiRepository(db *sql.DB) *TransaksiRepository {
 }
 
 func (r *TransaksiRepository) CreateTransaksi(transaksi models.Transaksi) error {
-	//query
 	query := `
-		INSERT INTO transaksi(user_id, type, amount, category, description, date)
-		VALUES($1, $2, $3, $4, $5, $6)
+		INSERT INTO transactions(
+			user_id,
+			type,
+			amount,
+			category,
+			description,
+			date
+		)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 
 	_, err := r.db.Exec(
@@ -48,19 +37,30 @@ func (r *TransaksiRepository) CreateTransaksi(transaksi models.Transaksi) error 
 		transaksi.Deskripsi,
 		transaksi.Tanggal,
 	)
+
 	return err
 }
 
 func (r *TransaksiRepository) GetTransaksiByID(id int) (models.Transaksi, error) {
 	query := `
-	SELECT id, user_id, type, amount, category, description, date
-	FROM transaksi
-	WHERE id = $1
+		SELECT
+			id,
+			user_id,
+			type,
+			amount,
+			category,
+			description,
+			date
+		FROM transactions
+		WHERE id = $1
 	`
+
 	var transaksi models.Transaksi
 
 	row := r.db.QueryRow(query, id)
+
 	err := row.Scan(
+		&transaksi.ID,
 		&transaksi.PenggunaID,
 		&transaksi.Tipe,
 		&transaksi.Jumlah,
@@ -68,15 +68,24 @@ func (r *TransaksiRepository) GetTransaksiByID(id int) (models.Transaksi, error)
 		&transaksi.Deskripsi,
 		&transaksi.Tanggal,
 	)
+
 	return transaksi, err
 }
 
 func (r *TransaksiRepository) GetTransaksiByPenggunaID(penggunaID int) ([]models.Transaksi, error) {
 	query := `
-	SELECT id, user_id, type, amount, category, description, date
-	FROM transaksi
-	WHERE user_id = $1
+		SELECT
+			id,
+			user_id,
+			type,
+			amount,
+			category,
+			description,
+			date
+		FROM transactions
+		WHERE user_id = $1
 	`
+
 	rows, err := r.db.Query(query, penggunaID)
 	if err != nil {
 		return nil, err
@@ -88,7 +97,7 @@ func (r *TransaksiRepository) GetTransaksiByPenggunaID(penggunaID int) ([]models
 	for rows.Next() {
 		var transaksi models.Transaksi
 
-		err = rows.Scan(
+		err := rows.Scan(
 			&transaksi.ID,
 			&transaksi.PenggunaID,
 			&transaksi.Tipe,
@@ -110,13 +119,19 @@ func (r *TransaksiRepository) GetTransaksiByPenggunaID(penggunaID int) ([]models
 	}
 
 	return daftarTransaksi, nil
-
 }
 
 func (r *TransaksiRepository) GetAllTransaksi() ([]models.Transaksi, error) {
 	query := `
-		SELECT id, user_id, type, amount, category, description, date
-		FROM transaksi
+		SELECT
+			id,
+			user_id,
+			type,
+			amount,
+			category,
+			description,
+			date
+		FROM transactions
 	`
 
 	rows, err := r.db.Query(query)
@@ -130,7 +145,7 @@ func (r *TransaksiRepository) GetAllTransaksi() ([]models.Transaksi, error) {
 	for rows.Next() {
 		var transaksi models.Transaksi
 
-		err = rows.Scan(
+		err := rows.Scan(
 			&transaksi.ID,
 			&transaksi.PenggunaID,
 			&transaksi.Tipe,
@@ -156,16 +171,17 @@ func (r *TransaksiRepository) GetAllTransaksi() ([]models.Transaksi, error) {
 
 func (r *TransaksiRepository) UpdateTransaksi(transaksi models.Transaksi) error {
 	query := `
-	UPDATE transaksi
-	SET
-	    user_id = $1,
-    	type = $2,
-    	amount = $3,
-    	category = $4,
-    	description = $5,
-    	date = $6
-	WHERE id = $7
+		UPDATE transactions
+		SET
+			user_id = $1,
+			type = $2,
+			amount = $3,
+			category = $4,
+			description = $5,
+			date = $6
+		WHERE id = $7
 	`
+
 	_, err := r.db.Exec(
 		query,
 		transaksi.PenggunaID,
@@ -177,24 +193,16 @@ func (r *TransaksiRepository) UpdateTransaksi(transaksi models.Transaksi) error 
 		transaksi.ID,
 	)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (r *TransaksiRepository) DeleteTransaksi(id int) error {
 	query := `
-	DELETE FROM transaksi
-	WHERE id = $1
+		DELETE FROM transactions
+		WHERE id = $1
 	`
 
 	_, err := r.db.Exec(query, id)
 
-	if err != nil {
-		return err
-	}
-
-	reutnr nil
+	return err
 }

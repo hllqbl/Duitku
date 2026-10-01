@@ -1,114 +1,156 @@
-package service
+package repository
 
 import (
 	"Duitku/models"
-	"Duitku/repository"
 	"database/sql"
-	"errors"
-	"strings"
 )
 
-type PenggunaService struct {
-	repo *repository.PenggunaRepository
+type PenggunaRepository struct {
+	db *sql.DB
 }
 
-func NewPenggunaService(repo *repository.PenggunaRepository) *PenggunaService {
-	return &PenggunaService{
-		repo: repo,
+func NewPenggunaRepository(db *sql.DB) *PenggunaRepository {
+	return &PenggunaRepository{
+		db: db,
 	}
 }
 
-func (s *PenggunaService) CreatePengguna(pengguna models.Pengguna) error {
-	if strings.TrimSpace(pengguna.Pengguna) == "" {
-		return errors.New("username wajib diisi")
-	}
+func (r *PenggunaRepository) CreatePengguna(pengguna models.Pengguna) error {
+	query := `
+		INSERT INTO users(username, password)
+		VALUES ($1, $2)
+	`
 
-	if strings.TrimSpace(pengguna.KataSandi) == "" {
-		return errors.New("password wajib diisi")
-	}
+	_, err := r.db.Exec(
+		query,
+		pengguna.Pengguna,
+		pengguna.KataSandi,
+	)
 
-	err := s.repo.CreatePengguna(pengguna)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (s *PenggunaService) GetPenggunaByID(id int) (models.Pengguna, error) {
-	if id <= 0 {
-		return models.Pengguna{}, errors.New("ID pengguna harus lebih dari 0")
-	}
+func (r *PenggunaRepository) GetPenggunaByID(id int) (models.Pengguna, error) {
+	query := `
+		SELECT id, username, password
+		FROM users
+		WHERE id = $1
+	`
 
-	pengguna, err := s.repo.GetPenggunaByID(id)
+	var pengguna models.Pengguna
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return models.Pengguna{}, errors.New("pengguna tidak ditemukan")
-	}
+	row := r.db.QueryRow(query, id)
 
-	if err != nil {
-		return models.Pengguna{}, err
-	}
+	err := row.Scan(
+		&pengguna.ID,
+		&pengguna.Pengguna,
+		&pengguna.KataSandi,
+	)
 
-	return pengguna, nil
+	return pengguna, err
 }
 
-func (s *PenggunaService) SearchPengguna(username string) ([]models.Pengguna, error) {
-	if strings.TrimSpace(username) == "" {
-		return []models.Pengguna{}, errors.New("username pencarian wajib diisi")
-	}
+func (r *PenggunaRepository) SearchPengguna(username string) ([]models.Pengguna, error) {
+	query := `
+		SELECT id, username, password
+		FROM users
+		WHERE username ILIKE $1
+	`
 
-	pengguna, err := s.repo.SearchPengguna(username)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return pengguna, nil
-}
-
-func (s *PenggunaService) GetAllPengguna() ([]models.Pengguna, error) {
-	pengguna, err := s.repo.GetAllPengguna()
-
+	rows, err := r.db.Query(query, "%"+username+"%")
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	return pengguna, nil
+	var daftarPengguna []models.Pengguna
+
+	for rows.Next() {
+		var pengguna models.Pengguna
+
+		err := rows.Scan(
+			&pengguna.ID,
+			&pengguna.Pengguna,
+			&pengguna.KataSandi,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		daftarPengguna = append(daftarPengguna, pengguna)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return daftarPengguna, nil
 }
 
-func (s *PenggunaService) UpdatePengguna(pengguna models.Pengguna) error {
-	if pengguna.ID <= 0 {
-		return errors.New("ID pengguna harus lebih dari 0")
-	}
+func (r *PenggunaRepository) GetAllPengguna() ([]models.Pengguna, error) {
+	query := `
+		SELECT id, username, password
+		FROM users
+	`
 
-	if strings.TrimSpace(pengguna.Pengguna) == "" {
-		return errors.New("username wajib diisi")
-	}
-
-	if strings.TrimSpace(pengguna.KataSandi) == "" {
-		return errors.New("password wajib diisi")
-	}
-
-	err := s.repo.UpdatePengguna(pengguna)
-
+	rows, err := r.db.Query(query)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer rows.Close()
+
+	var daftarPengguna []models.Pengguna
+
+	for rows.Next() {
+		var pengguna models.Pengguna
+
+		err := rows.Scan(
+			&pengguna.ID,
+			&pengguna.Pengguna,
+			&pengguna.KataSandi,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		daftarPengguna = append(daftarPengguna, pengguna)
 	}
 
-	return nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return daftarPengguna, nil
 }
 
-func (s *PenggunaService) DeletePengguna(id int) error {
-	if id <= 0 {
-		return errors.New("ID pengguna harus lebih dari 0")
-	}
+func (r *PenggunaRepository) UpdatePengguna(pengguna models.Pengguna) error {
+	query := `
+		UPDATE users
+		SET
+			username = $1,
+			password = $2
+		WHERE id = $3
+	`
 
-	err := s.repo.DeletePengguna(id)
+	_, err := r.db.Exec(
+		query,
+		pengguna.Pengguna,
+		pengguna.KataSandi,
+		pengguna.ID,
+	)
 
-	if err != nil {
-		return err
-	}
+	return err
+}
 
-	return nil
+func (r *PenggunaRepository) DeletePengguna(id int) error {
+	query := `
+		DELETE FROM users
+		WHERE id = $1
+	`
+
+	_, err := r.db.Exec(query, id)
+
+	return err
 }

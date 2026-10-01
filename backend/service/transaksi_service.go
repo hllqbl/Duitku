@@ -76,23 +76,72 @@ func (s *TransaksiService) GetTransaksiByID(id int) (models.Transaksi, error) {
 }
 
 func (s *TransaksiService) GetTransaksiByPenggunaID(penggunaID int) ([]models.Transaksi, error) {
-	// 1. Validasi penggunaID
 	if penggunaID <= 0 {
 		return []models.Transaksi{}, errors.New("mohon masukkan pengguna id yang sesuai!")
 	}
 
-	// 2. Panggil repository
 	transaksi, err := s.repo.GetTransaksiByPenggunaID(penggunaID)
 
-	// 3. Tangani error
-	if errors.Is(err, sql.ErrNoRows) {
-		return models.Transaksi{}, err
+	if err != nil {
+		return []models.Transaksi{}, err
 	}
+
+	return transaksi, nil
+}
+
+func (s *TransaksiService) GetAllTransaksi() ([]models.Transaksi, error) {
+	transaksi, err := s.repo.GetAllTransaksi()
 
 	if err != nil {
-		return models.Transaksi{}, err
+		return nil, err
 	}
 
-	// 4. Return slice transaksi
-	return transaksi, nil
+	return transaksi,nil
+}
+
+func (s *TransaksiService) UpdateTransaksi(transaksi models.Transaksi) error {
+	if transaksi.ID <= 0 {
+		return errors.New("ID transaksi harus lebih dari 0")
+	}
+
+	if transaksi.PenggunaID <= 0 {
+		return errors.New("ID pengguna harus lebih dari 0")
+	}
+
+	if transaksi.Tipe != "pemasukan" && transaksi.Tipe != "pengeluaran" {
+		return errors.New(`tipe harus bernilai "pemasukan" atau "pengeluaran"`)
+	}
+
+	if transaksi.Jumlah <= 0 {
+		return errors.New("jumlah harus lebih dari 0")
+	}
+
+	if strings.TrimSpace(transaksi.Kategori) == "" {
+		return errors.New("kategori wajib diisi")
+	}
+
+	if transaksi.Deskripsi != "" && strings.TrimSpace(transaksi.Deskripsi) == "" {
+		return errors.New("deskripsi tidak boleh hanya berisi spasi")
+	}
+
+	err := s.repo.UpdateTransaksi(transaksi)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *TransaksiService) DeleteTransaksi(id int) error {
+	if id <= 0 {
+		return errors.New("...")
+	}
+
+	err := s.repo.DeleteTransaksi(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
