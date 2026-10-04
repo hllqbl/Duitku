@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
-import { getAllTransaksi } from "../services/transaksiService";
+import { useNavigate } from "react-router-dom";
+
+import { getAllTransaksi, deleteTransaksi } from "../services/transaksiService";
+
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
+import Button from "../components/Button";
 
 function TransaksiPage() {
+  const navigate = useNavigate();
+
   const [transaksi, setTransaksi] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,6 +48,24 @@ function TransaksiPage() {
     }).format(jumlah);
   }
 
+  async function handleDelete(id) {
+    const yakin = window.confirm("Yakin ingin menghapus transaksi ini?");
+
+    if (!yakin) return;
+
+    try {
+      await deleteTransaksi(id);
+
+      setTransaksi((prev) => prev.filter((item) => item.id_transaksi !== id));
+
+      console.log("Transaksi berhasil dihapus");
+    } catch (err) {
+      console.error("ERROR DELETE:", err);
+
+      setError(err.message);
+    }
+  }
+
   if (loading) {
     return <p>Loading transaksi...</p>;
   }
@@ -73,10 +97,16 @@ function TransaksiPage() {
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Tanggal</th>
+
                   <th className="px-4 py-3 font-semibold">Kategori</th>
+
                   <th className="px-4 py-3 font-semibold">Tipe</th>
+
                   <th className="px-4 py-3 font-semibold">Jumlah</th>
+
                   <th className="px-4 py-3 font-semibold">Deskripsi</th>
+
+                  <th className="px-4 py-3 font-semibold">Aksi</th>
                 </tr>
               </thead>
 
@@ -98,6 +128,29 @@ function TransaksiPage() {
 
                     <td className="px-4 py-3 text-gray-600">
                       {item.deskripsi}
+                    </td>
+
+                    {/* Aksi */}
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="gray"
+                          type="button"
+                          onClick={() =>
+                            navigate(`/transaksi/edit/${item.id_transaksi}`)
+                          }
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
+                          variant="red"
+                          type="button"
+                          onClick={() => handleDelete(item.id_transaksi)}
+                        >
+                          Hapus
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

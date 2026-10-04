@@ -1,8 +1,10 @@
 import { useState } from "react";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import Sidebar from "../components/Sidebar";
+
 import { createTransaksi } from "../services/transaksiService";
 
 function TambahTransaksiPage() {
@@ -13,12 +15,59 @@ function TambahTransaksiPage() {
     deskripsi: "",
     tanggal: "",
   });
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (loading) return;
+
+    // Bersihkan error sebelumnya
+    setError("");
+
+    // =========================
+    // VALIDASI FRONTEND
+    // =========================
+
+    if (!form.tipe) {
+      setError("Tipe transaksi harus dipilih.");
+      return;
+    }
+
+    if (!form.jumlah) {
+      setError("Jumlah harus diisi.");
+      return;
+    }
+
+    if (Number(form.jumlah) <= 0) {
+      setError("Jumlah harus lebih dari 0.");
+      return;
+    }
+
+    if (!form.kategori) {
+      setError("Kategori harus dipilih.");
+      return;
+    }
+
+    if (!form.tanggal) {
+      setError("Tanggal harus diisi.");
+      return;
+    }
+
+    // =========================
+    // DATA YANG DIKIRIM KE API
+    // =========================
 
     const data = {
       ...form,
@@ -44,6 +93,8 @@ function TambahTransaksiPage() {
       });
     } catch (err) {
       console.error("ERROR POST:", err);
+
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -69,7 +120,14 @@ function TambahTransaksiPage() {
               </p>
             </div>
 
-            {/* Form Card */}
+            {/* Error */}
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            {/* Form */}
             <form
               className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
               onSubmit={handleSubmit}
@@ -87,13 +145,8 @@ function TambahTransaksiPage() {
                         type="radio"
                         name="tipe"
                         value="pemasukan"
-                        className="h-4 w-4"
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            tipe: e.target.value,
-                          })
-                        }
+                        checked={form.tipe === "pemasukan"}
+                        onChange={handleChange}
                       />
 
                       <span className="text-sm text-gray-700">Pemasukan</span>
@@ -104,13 +157,8 @@ function TambahTransaksiPage() {
                         type="radio"
                         name="tipe"
                         value="pengeluaran"
-                        className="h-4 w-4"
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            tipe: e.target.value,
-                          })
-                        }
+                        checked={form.tipe === "pengeluaran"}
+                        onChange={handleChange}
                       />
 
                       <span className="text-sm text-gray-700">Pengeluaran</span>
@@ -129,15 +177,12 @@ function TambahTransaksiPage() {
 
                   <input
                     id="jumlah"
+                    name="jumlah"
                     type="number"
+                    min="1"
                     placeholder="Contoh: 50000"
                     value={form.jumlah}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        jumlah: e.target.value,
-                      })
-                    }
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                   />
                 </div>
@@ -153,13 +198,9 @@ function TambahTransaksiPage() {
 
                   <select
                     id="kategori"
+                    name="kategori"
                     value={form.kategori}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        kategori: e.target.value,
-                      })
-                    }
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                   >
                     <option value="">Pilih kategori</option>
@@ -186,15 +227,11 @@ function TambahTransaksiPage() {
 
                   <textarea
                     id="deskripsi"
+                    name="deskripsi"
                     rows="3"
                     placeholder="Contoh: Makan siang"
                     value={form.deskripsi}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        deskripsi: e.target.value,
-                      })
-                    }
+                    onChange={handleChange}
                     className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                   ></textarea>
                 </div>
@@ -210,14 +247,10 @@ function TambahTransaksiPage() {
 
                   <input
                     id="tanggal"
+                    name="tanggal"
                     type="date"
                     value={form.tanggal}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        tanggal: e.target.value,
-                      })
-                    }
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                   />
                 </div>
@@ -225,7 +258,11 @@ function TambahTransaksiPage() {
 
               {/* Buttons */}
               <div className="mt-6 flex justify-end gap-3 border-t border-gray-100 pt-5">
-                <Button variant="gray" type="button">
+                <Button
+                  variant="gray"
+                  type="button"
+                  onClick={() => window.history.back()}
+                >
                   Batal
                 </Button>
 

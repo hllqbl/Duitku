@@ -10,15 +10,15 @@ function AppRoutes() {
   return (
     <Routes>
       {/* route dashboard */}
-    <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
       {/* route transaksi */}
-    <Route path="/transaksi" element={<TransaksiPage />} />
+      <Route path="/transaksi" element={<TransaksiPage />} />
       {/* route tambah transaksi */}
-    <Route path="/transaksi/tambah" element={<TambahTransaksiPage />} />
+      <Route path="/transaksi/tambah" element={<TambahTransaksiPage />} />
       {/* route edit transaksi */}
-    <Route path="/transaksi/edit/:id" element={<EditTransaksiPage />} />
+      <Route path="/transaksi/edit/:id" element={<EditTransaksiPage />} />
       {/* route pengguna */}
-       <Route path="/pengguna" element={<PenggunaPage />} />
+      <Route path="/pengguna" element={<PenggunaPage />} />
     </Routes>
   );
 }
