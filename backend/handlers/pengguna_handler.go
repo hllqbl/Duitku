@@ -179,3 +179,40 @@ func (h *PenggunaHandler) DeletePengguna(w http.ResponseWriter, r *http.Request)
 		"message": "pengguna berhasil dihapus",
 	})
 }
+
+func (h *PenggunaHandler) Login(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method tidak diizinkan", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		Pengguna  string `json:"pengguna"`
+		KataSandi string `json:"kata_sandi"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+
+	if err != nil {
+		http.Error(w, "Data tidak valid", http.StatusBadRequest)
+		return
+	}
+
+	pengguna, err := h.service.Login(
+		request.Pengguna,
+		request.KataSandi,
+	)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":  "Login berhasil",
+		"pengguna": pengguna,
+	})
+}

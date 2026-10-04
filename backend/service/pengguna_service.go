@@ -112,3 +112,18 @@ func (s *PenggunaService) DeletePengguna(id int) error {
 
 	return nil
 }
+
+func (s *PenggunaService) Login(username, password string) (models.Pengguna, error) {
+
+	pengguna, err := s.repo.GetByUsername(username)
+
+	if err != nil {
+		return models.Pengguna{}, err
+	}
+
+	if pengguna.KataSandi != password {
+		return models.Pengguna{}, errors.New("password salah")
+	}
+
+	return *pengguna, nil
+}

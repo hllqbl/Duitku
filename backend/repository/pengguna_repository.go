@@ -154,3 +154,24 @@ func (r *PenggunaRepository) DeletePengguna(id int) error {
 
 	return err
 }
+
+func (r *PenggunaRepository) GetByUsername(username string) (*models.Pengguna, error) {
+	query := `
+	SELECT 	id, username, password
+	FROM users
+	`
+	var pengguna models.Pengguna
+
+	err := r.db.QueryRow(query, username).Scan(
+		&pengguna.ID,
+		&pengguna.Pengguna,
+		&pengguna.KataSandi,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pengguna, nil
+
+}
