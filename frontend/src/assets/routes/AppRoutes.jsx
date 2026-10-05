@@ -6,18 +6,34 @@ import TambahTransaksiPage from "../pages/TambahTransaksiPage";
 import EditTransaksiPage from "../pages/EditTransaksiPage";
 import PenggunaPage from "../pages/PenggunaPage";
 
+import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
+
 function AppRoutes() {
   return (
     <Routes>
-      {/* route dashboard */}
+      {/* Halaman awal */}
+      <Route path="/" element={<LoginPage />} />
+
+      {/* Login */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Register */}
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* Dashboard */}
       <Route path="/dashboard" element={<DashboardPage />} />
-      {/* route transaksi */}
+
+      {/* Transaksi */}
       <Route path="/transaksi" element={<TransaksiPage />} />
-      {/* route tambah transaksi */}
+
+      {/* Tambah transaksi */}
       <Route path="/transaksi/tambah" element={<TambahTransaksiPage />} />
-      {/* route edit transaksi */}
+
+      {/* Edit transaksi */}
       <Route path="/transaksi/edit/:id" element={<EditTransaksiPage />} />
-      {/* route pengguna */}
+
+      {/* Pengguna */}
       <Route path="/pengguna" element={<PenggunaPage />} />
     </Routes>
   );
