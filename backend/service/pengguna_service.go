@@ -5,6 +5,7 @@ import (
 	"Duitku/repository"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -115,15 +116,25 @@ func (s *PenggunaService) DeletePengguna(id int) error {
 
 func (s *PenggunaService) Login(username, password string) (models.Pengguna, error) {
 
+	fmt.Println("USERNAME DARI REQUEST:", username)
+	fmt.Println("PASSWORD DARI REQUEST:", password)
+
 	pengguna, err := s.repo.GetByUsername(username)
 
 	if err != nil {
+		fmt.Println("ERROR GET USERNAME:", err)
 		return models.Pengguna{}, err
 	}
 
+	fmt.Println("USER DARI DATABASE:", pengguna.Pengguna)
+	fmt.Println("PASSWORD DARI DATABASE:", pengguna.KataSandi)
+
 	if pengguna.KataSandi != password {
+		fmt.Println("PASSWORD TIDAK COCOK")
 		return models.Pengguna{}, errors.New("password salah")
 	}
+
+	fmt.Println("LOGIN BERHASIL")
 
 	return *pengguna, nil
 }

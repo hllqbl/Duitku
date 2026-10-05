@@ -49,6 +49,12 @@ func SetupRoutes(
 	// ROUTE PENGGUNA
 	// =========================
 
+	// POST /api/login
+	mux.HandleFunc(
+		"POST /api/login",
+		penggunaHandler.Login,
+	)
+
 	// POST /api/pengguna
 	mux.HandleFunc(
 		"POST /api/pengguna",

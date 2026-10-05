@@ -159,6 +159,7 @@ func (r *PenggunaRepository) GetByUsername(username string) (*models.Pengguna, e
 	query := `
 	SELECT 	id, username, password
 	FROM users
+	WHERE username = $1
 	`
 	var pengguna models.Pengguna
 
